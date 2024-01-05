@@ -114,5 +114,5 @@ MIT License
 [codecov-img]: https://codecov.io/gh/admercs/SimpleArgParse.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/admercs/SimpleArgParse.jl
 
-[CI-img]: https://github.com/admercs/SimpleArgParse.jl/actions/workflows/ci.yml/badge.svg
-[CI-url]: https://github.com/admercs/SimpleArgParse.jl/actions/workflows/ci.yml
+[CI-img]: https://github.com/admercs/SimpleArgParse.jl/actions/workflows/github-actions.yml/badge.svg
+[CI-url]: https://github.com/admercs/SimpleArgParse.jl/actions/workflows/github-actions.yml
