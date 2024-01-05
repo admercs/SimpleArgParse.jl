@@ -62,8 +62,8 @@ function main()
     get(args, 'v')       && println("Verbose mode enabled")
     get(args, "help")    && help()
 
-    # get an argument value; fail gracefully
-    input::String = exists(args, "input") ? get(args, "input") : nothing
+    # get an argument value; fails gracefully, returns `nothing` if it does not exist
+    input::String = get(args, "input")
 
     # for better or worse, you can also directly access the argument key-value store
     # pro tip 1: the key is always the first non-hyphen character of the argument string
