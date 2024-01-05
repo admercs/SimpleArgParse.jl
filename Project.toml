@@ -1,0 +1,4 @@
+name = "SimpleArgParse"
+uuid = "4c739d64-e22d-44e1-ada1-53a1c3c0e953"
+authors = ["Adam Erickson <adam.michael.erickson@gmail.com>"]
+version = "0.1.0"
