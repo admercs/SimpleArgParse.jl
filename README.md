@@ -1,8 +1,12 @@
 # SimpleArgParse.jl
 
+[![DOCS][docs-img]][docs-url] [![CI][CI-img]][CI-url] [![CODECOV][codecov-img]][codecov-url]
+
 A hackable, single-file, 160-line, zero-dependency Julia package for command-line argument parsing.
 
-Does this need to be complicated?
+`SimpleArgParse` offers 90% of the functionality of  `ArgParse` using 5% of the lines-of-code (LOC).
+
+Does this need to be more complicated?
 
 ## Motivation
 
@@ -11,6 +15,23 @@ Parsing command-line arguments should not be complicated. Metaprogramming featur
 Here it is, a simple 160-line file with zero dependencies, a single data structure, and a few methods. Hack on it, build on it, and use it for your own projects. You can read all of the source code in under one minute.
 
 Enjoy! :sunglasses:
+
+## Installation
+
+From the Julia REPL:
+
+```julia
+using Pkg
+julia> Pkg.add("SimpleArgParse")
+```
+
+Or, using the Pkg REPL, activated with the `]` key from the Julia REPL:
+
+```julia
+$ julia
+julia> ]
+pkg> add SimpleArgParse
+```
 
 ## Usage
 
@@ -85,3 +106,14 @@ Note that our `get` and `set` methods override methods of the same name in `Base
 ## License
 
 MIT
+
+[Julia]: http://julialang.org
+
+[docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-url]: https://github.com/admercs/SimpleArgParse.jl
+
+[codecov-img]: https://codecov.io/gh/admercs/SimpleArgParse.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/admercs/SimpleArgParse.jl
+
+[CI-img]: https://github.com/admercs/SimpleArgParse.jl/actions/workflows/ci.yml/badge.svg
+[CI-url]: https://github.com/admercs/SimpleArgParse.jl/actions/workflows/ci.yml
