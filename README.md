@@ -70,7 +70,7 @@ function main()
     # pro tip 2: the value is always in the first tuple index
     verbose::Bool = args.kv_store['v'][1]
 
-    # DO SOMETHING HERE
+    # DO SOMETHING AMAZING
 
     return 0
 end
