@@ -19,6 +19,7 @@ Enjoy! :sunglasses:
 From the Julia REPL:
 
 ```julia
+$ julia
 julia> using Pkg
 julia> Pkg.add("SimpleArgParse")
 ```
