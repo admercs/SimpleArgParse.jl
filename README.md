@@ -103,7 +103,7 @@ Note that our `get` and `set` methods override methods of the same name in `Base
 
 ## License
 
-MIT
+MIT License
 
 [Julia]: http://julialang.org
 
