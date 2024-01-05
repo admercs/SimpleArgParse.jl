@@ -2,9 +2,7 @@
 
 [![DOCS][docs-img]][docs-url] [![CI][CI-img]][CI-url] [![CODECOV][codecov-img]][codecov-url]
 
-A hackable, single-file, 160-line, zero-dependency Julia package for command-line argument parsing.
-
-`SimpleArgParse` offers 90% of the functionality of  `ArgParse` using 5% of the lines-of-code (LOC).
+A hackable, single-file, 160-line, zero-dependency Julia package for command-line argument parsing. `SimpleArgParse` offers 90% of the functionality of  `ArgParse` using 5% of the lines-of-code (LOC).
 
 Does this need to be more complicated?
 
@@ -21,7 +19,7 @@ Enjoy! :sunglasses:
 From the Julia REPL:
 
 ```julia
-using Pkg
+julia> using Pkg
 julia> Pkg.add("SimpleArgParse")
 ```
 
