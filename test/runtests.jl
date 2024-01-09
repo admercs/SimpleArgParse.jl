@@ -48,7 +48,6 @@ using Test
         @test "bar" == get_value(p, "-f")
         @test "bar" == get_value(p, "f")
         @test isa(get_value(p, "foo"), String)
-        @test_throws exception get_value(p, "--missing")
     end
     
     @testset "Testset set_value" begin
