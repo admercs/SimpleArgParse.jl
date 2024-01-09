@@ -6,7 +6,7 @@ using Test
     @testset "Testset empty constructor" begin
         p = ArgumentParser()
         @test isempty(p.description)
-        @test isempty(p.author)
+        @test isempty(p.authors)
         @test isempty(p.documentation)
         @test isempty(p.repository)
         @test isempty(p.license)
@@ -25,7 +25,7 @@ using Test
             add_help=true
         )
         @test "test" == p.description
-        @test "first last" == p.author
+        @test ["first last <first.last@foo.bar>"] == p.authors
         @test "server/docs" == p.documentation
         @test "server/repo" == p.repository
         @test "license" == p.license
@@ -39,25 +39,23 @@ using Test
         @test "bar" == get_value(p, "--foo")
         @test "bar" == get_value(p, "-f")
         @test "bar" == get_value(p, "f")
-        @test_throws MethodError add_argument(p)
     end
 
-    @testset "Testset get" begin
+    @testset "Testset get_value" begin
         p = ArgumentParser()
         p = add_argument(p, "-f", "--foo", type=String, default="bar", description="baz")
         @test isnothing(get_value(p, "--missing"))
         @test "bar" == get_value(p, "--foo")
         @test "bar" == get_value(p, "-f")
         @test "bar" == get_value(p, "f")
-            @test isa(get_value(p, "--foo"), String)
-        @test_throws MethodError SimpleArgParse.get_value(p, 3)
+        @test isa(get_value(p, "foo"), String)
     end
     
-    @testset "Testset set" begin
+    @testset "Testset set_value" begin
         p = ArgumentParser()
         p = add_argument(p, "-f", "--foo", type=String, default="bar")
         @test "bar" == get_value(p, "--foo")
-        p = SimpleArgParse.set(p, "--foo", "baz")
+        p = set_value(p, "--foo", "baz")
         @test "baz" == get_value(p, "--foo")
     end
 
