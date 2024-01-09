@@ -1,4 +1,5 @@
-using SimpleArgParse: ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get, set, haskey, getkey
+include("../src/SimpleArgParse.jl")
+using .SimpleArgParse: ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get, set, haskey, getkey
 using Test
 
 @testset "SimpleArgParse tests" begin
