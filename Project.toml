@@ -5,6 +5,7 @@ version = "1.0.0"
 
 [deps]
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
 [compat]
 julia = "1.0"
