@@ -85,7 +85,7 @@ function main()
     haskey(args, "number") && println("The number: ", get(args, "number"))
 
     # we can override the usage statement with our own
-    args.usage::String = "\nUsage: main.jl [--input <PATH>] [--verbose] [--problem] [--help]"
+    args.usage::String = usage
     help(args, color="cyan")
     
     # use `set` to override command-line argument values
