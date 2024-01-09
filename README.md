@@ -2,15 +2,15 @@
 
 [![DOCS][docs-img]][docs-url] [![CI][CI-img]][CI-url] [![CODECOV][codecov-img]][codecov-url]
 
-A hackable, single-file, 160-line, zero-dependency Julia package for command-line argument parsing. `SimpleArgParse` offers 90% of the functionality of  `ArgParse` using 5% of the lines-of-code (LOC).
+A hackable, single-file, 320-line, single-dependency Julia package for command-line argument parsing. `SimpleArgParse` offers 95% of the functionality of  `ArgParse` using ~10% of the lines-of-code (LOC).
 
 Does this need to be more complicated?
 
 ## Motivation
 
-Parsing command-line arguments should not be complicated. Metaprogramming features such as macros and generators, while cool, are overkill. I wanted a simple command-line argument parsing library in the spirit of Python's [`argparse`](https://docs.python.org/3/library/argparse.html), but could not find one. The closest thing I found was [`ArgParse`](https://www.juliapackages.com/p/argparse), but I wanted something simpler. There's nothing worse than having to security audit a massive package for a simple task.
+Parsing command-line arguments should not be complicated. Metaprogramming features such as macros and generators, while cool, are overkill. I wanted a simple command-line argument parsing library in the spirit of Python's [`argparse`](https://docs.python.org/3/library/argparse.html), but could not find one. The closest thing I found was [`ArgParse`](https://www.juliapackages.com/p/argparse), but I desired something even simpler. There's nothing worse than having to security audit a massive package for a simple task.
 
-Here it is, a simple 160-line file with zero dependencies, a single data structure, and a few methods. Hack on it, build on it, and use it for your own projects. You can read all of the source code in under one minute.
+Here it is, a single, simple, 320-line file with one battle-hardened dependency (`OrderedCollections::OrderedDict`), a single nested data structure, and a few methods. Hack on it, build on it, and use it for your own projects. You can read all of the source code in around one minute.
 
 Enjoy! :sunglasses:
 
@@ -29,66 +29,71 @@ Or, using the Pkg REPL, activated with the `]` key from the Julia REPL:
 ```julia
 $ julia
 julia> ]
-pkg> add SimpleArgParse
+(v1.9) pkg> add SimpleArgParse
 ```
+
+## Specification
+
+We approximate the [Microsoft command-line syntax](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/command-line-syntax-key). Optional arguments are surrounded by square brackets, values are surrounded by angle brackets (chevrons), and mutually exclusive items are separated by a vertical bar.
 
 ## Usage
 
-First, create a simple helper function just for fun in our example. In future versions, we may automagically generate the `help()` or `usage()` method from our key-value store of command-line arguments. That does not need to be complicated either.
+First, create a typical usage string just for our example. We will also automagically generate a `usage` string from our key-value store of command-line arguments. That is not complicated either.
 
 ```julia
-using SimpleArgParse: colorize
-
 # help message.
-function help()
-    :Nothing
+usage::String = raw"""
+  Usage: main.jl --input <PATH> [--verbose] [--problem] [--help]
 
-    message::String = raw"
-    ./main.jl [--input] [--verbose] [--problem] [--help]
+  A Julia script with command-line arguments.
 
-    A Julia script with command-line arguments.
+  Options:
+    -i, --input <PATH>    Path to the input file.
+    -v, --verbose         Enable verbose message output.
+    -p, --problem         Print the problem statement.
+    -h, --help            Print this help message.
 
-    Options:
-      -i, --input <PATH>    Path to the input file.
-      -v, --verbose         Enable verbose message output.
-      -p, --problem         Print the problem statement.
-      -h, --help            Print this help message.
-
-    Examples:
-      $ julia main.jl --input dir/file.txt --verbose
-      $ julia main.jl --help
-    "
-    println(colorize(message, "cyan"))
-    return
-end
+  Examples:
+    $ julia main.jl --input dir/file.txt --verbose
+    $ julia main.jl --help
+  """
 ```
 
 We are ready to add and parse our command-line arguments!
 
 ```julia
-using SimpleArgParse: ArgumentParser, add_argument, parse_args, exists, get, set
+using SimpleArgParse: ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get, set, haskey, getkey, colorize
 
 function main()
     :Int
 
-    args::ArgumentParser = ArgumentParser(description="Demo")
-    args = add_argument(args, "-i", "--input",   type=String, default="./filename.txt")
-    args = add_argument(args, "-v", "--verbose", type=Bool,   default=false)
-    args = add_argument(args, "-h", "--help",    type=Bool,   default=false)
+    args::ArgumentParser = ArgumentParser(description="SimpleArgParse example.", add_help=true)
+    args = add_argument(args, "-i", "--input", type=String, required=true, default="filename.txt", description="Input file.")
+    args = add_argument(args, "-n", "--number", type=UInt8, default=0, description="Integer number.")
+    args = add_argument(args, "-v", "--verbose", type=Bool, default=false, description="Verbose mode switch.")
+    args = add_example(args, "julia main.jl --input dir/file.txt --number 10 --verbose")
+    args = add_example(args, "julia main.jl --help")
     args = parse_args(args)
-
-    # check booleans
+    
+    # check boolean flags passed via command-line
     get(args, "verbose") && println("Verbose mode enabled")
-    get(args, 'v')       && println("Verbose mode enabled")
-    get(args, "help")    && help()
+    get(args, "v")       && println("Verbose mode enabled")
+    get(args, "--help")  && help(args, color="yellow")
 
-    # get an argument value; fails gracefully, returns `nothing` if it does not exist
-    input::String = get(args, "input")
+    # check values
+    haskey(args, "input")  && println("Input file: ", get(args, "input"))
+    haskey(args, "number") && println("The number: ", get(args, "number"))
 
-    # for better or worse, you can also directly access the argument key-value store
-    # pro tip 1: the key is always the first non-hyphen character of the argument string
-    # pro tip 2: the value is always in the first tuple index
-    verbose::Bool = args.kv_store['v'][1]
+    # we can override the usage statement with our own
+    args.usage::String = "\nUsage: main.jl [--input <PATH>] [--verbose] [--problem] [--help]"
+    help(args, color="cyan")
+    
+    # use `set` to override command-line argument values
+    haskey(args, "help") && set(args, "help", true)
+    haskey(args, "help") && help(args, color="green")
+
+    # check if SHA-256 byte key exists and print it if it does
+    haskey(args, "help") && println("\nHash key: $(getkey(args, "help"))\n")
 
     # DO SOMETHING AMAZING
 
@@ -100,7 +105,21 @@ main()
 
 That is about as simple as it gets and closely follows Python's [`argparse`](https://docs.python.org/3/library/argparse.html). You will notice that we instead make extensive use of the visitor pattern, rather than member methods, to modify the state of the `ArgumentParser` object instance. That is because the Julia language (rather shockingly) does not support member methods. In other words, Julia does not fully support the object-oriented paradigm, but is more functional and data-oriented in design. In some ways, that is a good thing.
 
-Note that our `get` and `set` methods override methods of the same name in `Base`. Hence, they must be imported or referenced by their namespace, the package name.
+## Changelog
+
+### Release 1.0.0
+
+- Changed hashmap key from 8-bit to 16-bit to reduce collision likelihood.
+- Added a usage/help message generator method.
+- Added the `add_example`, `generate_usage`, `help`, `haskey`, and `getkey` methods.
+- Added a single dependency, `OrderedCollections::OrderedDict`, to ensure correctness of argument parsing order.
+- Squashed bugs in argument type parsing and conversion.
+- Added test cases.
+- Added examples.
+
+### Release 0.1.0
+
+- Initial launch :rocket:
 
 ## License
 
