@@ -1,4 +1,4 @@
-SimpleArgParse: ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get, set, haskey, getkey, colorize
+SimpleArgParse: ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get_value, set_value, has_key, get_key, colorize
 
 function main()
     :Int
@@ -12,24 +12,24 @@ function main()
     args = parse_args(args)
     
     # check boolean flags passed via command-line
-    get(args, "verbose") && println("Verbose mode enabled")
-    get(args, "v")       && println("Verbose mode enabled")
-    get(args, "--help")  && help(args, color="yellow")
+    get_value(args, "verbose") && println("Verbose mode enabled")
+    get_value(args, "v")       && println("Verbose mode enabled")
+    get_value(args, "--help")  && help(args, color="yellow")
 
     # check values
-    haskey(args, "input")  && println("Input file: ", get(args, "input"))
-    haskey(args, "number") && println("The number: ", get(args, "number"))
+    has_key(args, "input")  && println("Input file: ", get_value(args, "input"))
+    has_key(args, "number") && println("The number: ", get_value(args, "number"))
 
     # we can override the usage statement with our own
     args.usage::String = "\nUsage: main.jl [--input <PATH>] [--verbose] [--problem] [--help]"
     help(args, color="cyan")
     
     # use `set` to override command-line argument values
-    haskey(args, "help") && set(args, "help", true)
-    haskey(args, "help") && help(args, color="green")
+    has_key(args, "help") && set(args, "help", true)
+    has_key(args, "help") && help(args, color="green")
 
     # check if SHA-256 byte key exists and print it if it does
-    haskey(args, "help") && println("\nHash key: $(getkey(args, "help"))\n")
+    has_key(args, "help") && println("\nHash key: $(get_key(args, "help"))\n")
 
     # DO SOMETHING AMAZING
 

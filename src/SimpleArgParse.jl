@@ -1,6 +1,6 @@
 module SimpleArgParse
 
-export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get, set, haskey, getkey, colorize
+export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get_value, set_value, has_key, get_key, colorize
 
 using Base
 using SHA: sha256
@@ -69,7 +69,7 @@ end
 ###
 
 "Extract struct members to vector."
-function Base.vec(args::Arguments)
+function args2vec(args::Arguments)
     :Vector
     if isempty(args.short)
         if isempty(args.long)
@@ -151,7 +151,7 @@ function generate_usage(parser::ArgumentParser)
     usage::String = "Usage: $(parser.filename)"
     options::String = "Options:"
     for v::ArgumentValues in values(parser.kv_store)
-        args_vec::Vector{String} = vec(v.args)
+        args_vec::Vector{String} = args2vec(v.args)
         # example: String -> "<STRING>"
         type::String = v.type != Bool ? string(" ", join("<>", uppercase(string(v.type)))) : ""
         # example: (i,input) -> "[-i|--input <STRING>]"
@@ -223,7 +223,7 @@ function parse_args(parser::ArgumentParser)
 end
 
 "Get argument value from parser."
-function get(parser::ArgumentParser, arg::String)
+function get_value(parser::ArgumentParser, arg::String)
     :Any
     argkey::String = arg2key(arg)
     !haskey(parser.arg_store, argkey) && error("Argument not found: $(arg). Run `add_argument` first.")
@@ -233,7 +233,7 @@ function get(parser::ArgumentParser, arg::String)
 end
 
 "Check if argument key exists in store."
-function Base.haskey(parser::ArgumentParser, arg::String)
+function has_key(parser::ArgumentParser, arg::String)
     :Bool
     argkey::String = arg2key(arg)
     result::Bool = haskey(parser.arg_store, argkey) ? true : false
@@ -241,7 +241,7 @@ function Base.haskey(parser::ArgumentParser, arg::String)
 end
 
 "Get argument key from parser."
-function getkey(parser::ArgumentParser, arg::String)
+function get_key(parser::ArgumentParser, arg::String)
     :Union
     argkey::String = arg2key(arg)
     key::Union{UInt16,Nothing} = haskey(parser.arg_store, argkey) ? parser.arg_store[argkey] : nothing
@@ -257,7 +257,7 @@ function hyphenate(arg::String)
 end
 
 "Set/update value of argument in parser."
-function set(parser::ArgumentParser, arg::String, value::Any)
+function set_value(parser::ArgumentParser, arg::String, value::Any)
     :ArgumentParser
     argkey::String = arg2key(arg)
     !haskey(parser.arg_store, argkey) && error("Argument not found in store.")
