@@ -26,7 +26,7 @@ julia> Pkg.add("SimpleArgParse")
 
 Or, using the Pkg REPL, activated with the `]` key from the Julia REPL:
 
-```julia
+```shell
 $ julia
 julia> ]
 (v1.9) pkg> add SimpleArgParse
