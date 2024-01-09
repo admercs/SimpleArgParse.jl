@@ -44,11 +44,11 @@ using Test
     @testset "Testset get_value" begin
         p = ArgumentParser()
         p = add_argument(p, "-f", "--foo", type=String, default="bar", description="baz")
-        @test isnothing(get_value(p, "--missing"))
         @test "bar" == get_value(p, "--foo")
         @test "bar" == get_value(p, "-f")
         @test "bar" == get_value(p, "f")
         @test isa(get_value(p, "foo"), String)
+        @test_throws get_value(p, "--missing")
     end
     
     @testset "Testset set_value" begin
