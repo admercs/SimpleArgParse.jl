@@ -25,7 +25,7 @@ function main()
     help(args, color="cyan")
     
     # use `set` to override command-line argument values
-    has_key(args, "help") && set(args, "help", true)
+    has_key(args, "help") && set_value(args, "help", true)
     has_key(args, "help") && help(args, color="green")
 
     # check if SHA-256 byte key exists and print it if it does
