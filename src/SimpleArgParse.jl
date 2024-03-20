@@ -86,9 +86,9 @@ function args2vec(args::Arguments)
 end
 
 "Argument to argument-store key conversion by removing hypenation from prefix."
-function arg2key(arg::String)
+function arg2key(arg::AbstractString)
     :String
-    return strip(arg, '-')
+    return lstrip(arg, '-')
 end
 
 "Add command-line argument to ArgumentParser object instance."
@@ -126,7 +126,7 @@ function add_argument(parser::ArgumentParser, arg_short::String="", arg_long::St
 end
 
 "Add command-line usage example."
-function add_example(parser::ArgumentParser, example::String)
+function add_example(parser::ArgumentParser, example::AbstractString)
     :ArgumentParser
     push!(parser.examples, example)
     return parser
@@ -180,7 +180,7 @@ function generate_usage(parser::ArgumentParser)
 end
 
 "Helper function to print usage/help message."
-function help(parser::ArgumentParser; color::String="default")
+function help(parser::ArgumentParser; color::AbstractString="default")
     :Nothing
     println(colorize(parser.usage, color=color))
     return nothing
@@ -225,7 +225,7 @@ function parse_args(parser::ArgumentParser; cli_args=ARGS)
 end
 
 "Get argument value from parser."
-function get_value(parser::ArgumentParser, arg::String)
+function get_value(parser::ArgumentParser, arg::AbstractString)
     :Any
     argkey::String = arg2key(arg)
     !haskey(parser.arg_store, argkey) && error("Argument not found: $(arg). Run `add_argument` first.")
@@ -235,17 +235,17 @@ function get_value(parser::ArgumentParser, arg::String)
 end
 
 "Check if argument key exists in store."
-function has_key(parser::ArgumentParser, arg::String)
+function has_key(parser::ArgumentParser, arg::AbstractString)
     :Bool
     argkey::String = arg2key(arg)
     result::Bool = haskey(parser.arg_store, argkey) ? true : false
     return result
 end
 
-Base.keys(parser::ArgumentParser) = [lstrip(v.args.long, '-') for v in values(parser.kv_store)]
+Base.keys(parser::ArgumentParser) = [arg2key(v.args.long) for v in values(parser.kv_store)]
 
 "Get argument key from parser."
-function get_key(parser::ArgumentParser, arg::String)
+function get_key(parser::ArgumentParser, arg::AbstractString)
     :Union
     argkey::String = arg2key(arg)
     key::Union{UInt16,Nothing} = haskey(parser.arg_store, argkey) ? parser.arg_store[argkey] : nothing
@@ -253,7 +253,7 @@ function get_key(parser::ArgumentParser, arg::String)
 end
 
 "Prepend hyphenation back onto argument after stripping it for the argument-store key."
-function hyphenate(arg::String)
+function hyphenate(arg::AbstractString)
     :String
     argkey::String = arg2key(arg)  # supports "foo" or "--foo" argument form
     result::String = length(argkey) == 1 ? "-" * argkey : "--" * argkey
@@ -261,7 +261,7 @@ function hyphenate(arg::String)
 end
 
 "Set/update value of argument in parser."
-function set_value(parser::ArgumentParser, arg::String, value::Any)
+function set_value(parser::ArgumentParser, arg::AbstractString, value::Any)
     :ArgumentParser
     argkey::String = arg2key(arg)
     !haskey(parser.arg_store, argkey) && error("Argument not found in store.")
