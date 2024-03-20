@@ -4,8 +4,8 @@ export ArgumentParser, add_argument, add_example, generate_usage, help, parse_ar
     get_value, set_value, has_key, get_key, colorize,
     keys
 
-using Base
-using SHA: sha256
+# using Base
+# using SHA: sha256
 using OrderedCollections: OrderedDict
 
 ###
@@ -34,6 +34,8 @@ mutable struct ArgumentParser
     kv_store::OrderedDict{UInt16,ArgumentValues}
     "key-value store: { arg: key }"
     arg_store::OrderedDict{String,UInt16}
+    "number of stored args"
+    lng::UInt16
     # attributes
     "file name"
     filename::String
@@ -54,14 +56,14 @@ mutable struct ArgumentParser
     "flag to automatically generate a help message"
     add_help::Bool
     # "empty constructor"
-    # ArgumentParser() = new(OrderedDict(), OrderedDict(), "", "", "", "", "", "", "", "", false)
+    # ArgumentParser() = new(OrderedDict(), OrderedDict(), 0, "", "", "", "", "", "", "", "", false)
     "keyword argument constructor"
     function ArgumentParser(;
-        filename="", description::String="", authors::Vector{String}=String[],
+        filename="", description::String="", lng=0, authors::Vector{String}=String[],
         documentation::String="", repository::String="", license::String="",
         usage::String="", examples::Vector{String}=String[], add_help::Bool=false)
         :ArgumentParser
-        new(OrderedDict(), OrderedDict(), filename, description, authors, documentation,
+        new(OrderedDict(), OrderedDict(), lng, filename, description, authors, documentation,
             repository, license, usage, examples, add_help)
     end
 end
@@ -112,10 +114,8 @@ function add_argument(parser::ArgumentParser, arg_short::String="", arg_long::St
     # prefer stripped long argument for higher entropy
     arg::String = !isempty(arg_long) ? arg_long : !isempty(arg_short) ? arg_short : ""
     isempty(arg) && error("Argument(s) missing. See usage examples.")
-    # remove prepended hyphenation to increase entropy
-    argkey::String = arg2key(arg)
-    # key is first two bytes of SHA-256 hash of argument name; up to 65,536 argument keys
-    key::UInt16 = read(IOBuffer(sha256(argkey)[1:2]), UInt16)
+    parser.lng += 1
+    key::UInt16 = parser.lng
     # map both argument names to the same key
     !isempty(arg_short) && (parser.arg_store[arg2key(arg_short)] = key)
     !isempty(arg_long)  && (parser.arg_store[arg2key(arg_long)]  = key)
