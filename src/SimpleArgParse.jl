@@ -1,6 +1,8 @@
 module SimpleArgParse
 
-export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get_value, set_value, has_key, get_key, colorize
+export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, 
+    get_value, set_value, has_key, get_key, colorize,
+    keys
 
 using Base
 using SHA: sha256
@@ -240,7 +242,7 @@ function has_key(parser::ArgumentParser, arg::String)
     return result
 end
 
-keys(parser::ArgumentParser) = keys(parser.arg_store)
+Base.keys(parser::ArgumentParser) = [lstrip(v.args.long, '-') for v in values(parser.kv_store)]
 
 "Get argument key from parser."
 function get_key(parser::ArgumentParser, arg::String)
