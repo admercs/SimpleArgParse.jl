@@ -1,4 +1,5 @@
 module SimpleArgParse
+__precompile__(false)
 
 export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get_value, set_value, has_key, get_key, colorize
 
@@ -185,16 +186,16 @@ function help(parser::ArgumentParser; color::String="default")
 end
 
 "Parse command-line arguments."
-function parse_args(parser::ArgumentParser)
+function parse_args(parser::ArgumentParser; args=ARGS)
     :ArgumentParser
     if parser.add_help
         parser = add_argument(parser, "-h", "--help", type=Bool, default=false, description="Print the help message.")
         parser.usage = generate_usage(parser)
     end
     parser.filename = PROGRAM_FILE
-    n::Int64 = length(ARGS)
-    for i::Int64 in eachindex(ARGS)
-        arg::String = ARGS[i]
+    n::Int64 = length(args)
+    for i::Int64 in eachindex(args)
+        arg::String = args[i]
         argkey::String = arg2key(arg)
         if startswith(arg, "-")
             !haskey(parser.arg_store, argkey) && error("Argument not found: $(arg). Call `add_argument` before parsing.")
@@ -205,10 +206,10 @@ function parse_args(parser::ArgumentParser)
         end
         # if next iteration is at the end or is an argument, treat current argument as flag/boolean
         # otherwise, capture the value and skip iterating over it for efficiency
-        if (i + 1 > n) || startswith(ARGS[i+1], "-")
+        if (i + 1 > n) || startswith(args[i+1], "-")
             value = true
         elseif (i + 1 <= n)
-            value = ARGS[i+1]
+            value = args[i+1]
             i += 1
         else
             error("Value failed to parse for arg: $(arg)")
