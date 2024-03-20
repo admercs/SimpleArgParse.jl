@@ -240,6 +240,8 @@ function has_key(parser::ArgumentParser, arg::String)
     return result
 end
 
+keys(parser::ArgumentParser) = keys(parser.arg_store)
+
 "Get argument key from parser."
 function get_key(parser::ArgumentParser, arg::String)
     :Union
