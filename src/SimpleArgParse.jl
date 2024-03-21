@@ -1,7 +1,7 @@
 module SimpleArgParse
 
-export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, 
-    get_value, set_value, has_key, get_key, colorize,
+export ArgumentParser, add_argument!, add_example!, generate_usage, help, parse_args!, 
+    get_value, set_value, has_key, get_key, colorize, colorprint, nt_args,
     keys
 
 # using Base
@@ -94,7 +94,7 @@ function arg2key(arg::AbstractString)
 end
 
 "Add command-line argument to ArgumentParser object instance."
-function add_argument(parser::ArgumentParser, arg_short::String="", arg_long::String="";
+function add_argument!(parser::ArgumentParser, arg_short::String="", arg_long::String="";
     type::Type=Any, required::Bool=false, default::Any=nothing, description::String="")
     """
     # Arguments
@@ -126,7 +126,7 @@ function add_argument(parser::ArgumentParser, arg_short::String="", arg_long::St
 end
 
 "Add command-line usage example."
-function add_example(parser::ArgumentParser, example::AbstractString)
+function add_example!(parser::ArgumentParser, example::AbstractString)
     :ArgumentParser
     push!(parser.examples, example)
     return parser
@@ -187,10 +187,10 @@ function help(parser::ArgumentParser; color::AbstractString="default")
 end
 
 "Parse command-line arguments."
-function parse_args(parser::ArgumentParser; cli_args=ARGS)
+function parse_args!(parser::ArgumentParser; cli_args=ARGS)
     :ArgumentParser
     if parser.add_help
-        parser = add_argument(parser, "-h", "--help", type=Bool, default=false, description="Print the help message.")
+        parser = add_argument!(parser, "-h", "--help", type=Bool, default=false, description="Print the help message.")
         parser.usage = generate_usage(parser)
     end
     parser.filename = PROGRAM_FILE
@@ -299,7 +299,7 @@ ANSICODES::Base.ImmutableDict{String,Int} = Base.ImmutableDict(
     "default" => 39
 )
 
-function colorize(text::String; color::String="default", background::Bool=false, bright::Bool=false)
+function colorize(text::AbstractString; color::AbstractString="default", background::Bool=false, bright::Bool=false)
     :String
     """
     Colorize strings or backgrounds using ANSI codes and escape sequences.
@@ -327,6 +327,18 @@ function colorize(text::String; color::String="default", background::Bool=false,
     bright && (code += 60)
     code_string::String = string(code)
     return "\033[" * code_string * "m" * text * "\033[0m"
+end
+
+# # # # # # # # 
+
+colorprint(text, color="default"; background=false, bright=false) = println(colorize(text; color, background, bright))
+
+argpair(s, args) = Symbol(s) => get_value(args, s)
+
+function nt_args(args::ArgumentParser)
+    allkeys = keys(args)
+    filter!(x -> x != "help", allkeys)
+    return NamedTuple(argpair(k, args) for k in allkeys)
 end
 
 end # module SimpleArgParse
