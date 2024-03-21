@@ -331,7 +331,7 @@ end
 
 # # # # # # # # 
 
-function colorprint(text, color="default", newline=false; background=false, bright=false) 
+function colorprint(text, color="default", newline=true; background=false, bright=false) 
     print(colorize(text; color, background, bright))
     newline && println()
 end
