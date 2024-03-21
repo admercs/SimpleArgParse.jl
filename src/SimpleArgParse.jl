@@ -331,7 +331,10 @@ end
 
 # # # # # # # # 
 
-colorprint(text, color="default"; background=false, bright=false) = println(colorize(text; color, background, bright))
+function colorprint(text, color="default", newline=false; background=false, bright=false) 
+    print(colorize(text; color, background, bright))
+    newline && println()
+end
 
 argpair(s, args) = Symbol(s) => get_value(args, s)
 
