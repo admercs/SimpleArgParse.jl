@@ -1,7 +1,8 @@
 module SimpleArgParse
 
 export ArgumentParser, add_argument!, add_example!, generate_usage, help, parse_args!, 
-    get_value, set_value!, has_key, get_key, colorize, colorprint, nt_args,
+    get_value, set_value!, has_key, get_key, colorize, 
+    colorprint, nt_args, PromptedParser, 
     keys
 
 # using Base
@@ -345,7 +346,7 @@ function nt_args(args::ArgumentParser)
 end
 
 @kwdef mutable struct PromptedParser
-    parser::ArgumentParser
+    parser::ArgumentParser = ArgumentParser()
     color::String = "default"
     introduction::String = ""
     prompt::String = "> "
