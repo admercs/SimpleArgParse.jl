@@ -1,7 +1,7 @@
 module SimpleArgParse
 
 export ArgumentParser, add_argument!, add_example!, generate_usage, help, parse_args!, 
-    get_value, set_value, has_key, get_key, colorize, colorprint, nt_args,
+    get_value, set_value!, has_key, get_key, colorize, colorprint, nt_args,
     keys
 
 # using Base
@@ -261,7 +261,7 @@ function hyphenate(arg::AbstractString)
 end
 
 "Set/update value of argument in parser."
-function set_value(parser::ArgumentParser, arg::AbstractString, value::Any)
+function set_value!(parser::ArgumentParser, arg::AbstractString, value::Any)
     :ArgumentParser
     argkey::String = arg2key(arg)
     !haskey(parser.arg_store, argkey) && error("Argument not found in store.")
@@ -343,5 +343,18 @@ function nt_args(args::ArgumentParser)
     filter!(x -> x != "help", allkeys)
     return NamedTuple(argpair(k, args) for k in allkeys)
 end
+
+@kwdef mutable struct PromptedParser
+    parser::ArgumentParser
+    color::String = "default"
+    introduction::String = ""
+    prompt::String = "> "
+end
+
+nt_args(p::PromptedParser) = nt_args(p.parser)
+set_value!(p::PromptedParser, arg, value) = set_value!(p.parser, arg, value)
+add_argument!(p::PromptedParser, arg_short, arg_long; kwargs...) = add_argument!(p.parser, arg_short, arg_long; kwargs...)
+parse_args!(p::PromptedParser, cli_args) = parse_args!(p.parser; cli_args)
+add_example!(p::PromptedParser, example) = add_example!(p.parser, example) 
 
 end # module SimpleArgParse
