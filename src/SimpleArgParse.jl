@@ -29,44 +29,33 @@ struct ArgumentValues
 end
 
 "Command-line argument parser with key-value stores and attributes."
-mutable struct ArgumentParser
+@kwdef mutable struct ArgumentParser
     # stores
     "key-value store: { key: ArgumentValues(value, type, required, help) }; up to 65,536 argument keys"
-    kv_store::OrderedDict{UInt16,ArgumentValues}
+    kv_store::OrderedDict{UInt16,ArgumentValues} = OrderedDict()
     "key-value store: { arg: key }"
-    arg_store::OrderedDict{String,UInt16}
+    arg_store::OrderedDict{String,UInt16} = OrderedDict()
     "number of stored args"
-    lng::UInt16
+    lng::UInt16 = 0
     # attributes
     "file name"
-    filename::String
+    filename::String = ""
     "description"
-    description::String
+    description::String = ""
     "name of author(s): First Last <first.last@email.address>"
-    authors::Vector{String}
+    authors::Vector{String} = String[]
     "URL of documentations"
-    documentation::String
+    documentation::String = ""
     "URL of software repository"
-    repository::String
+    repository::String = ""
     "name of license"
-    license::String
+    license::String = ""
     "usage/help message"
-    usage::String
+    usage::String = ""
     "usage examples"
-    examples::Vector{String}
+    examples::Vector{String} = String[]
     "flag to automatically generate a help message"
-    add_help::Bool
-    # "empty constructor"
-    # ArgumentParser() = new(OrderedDict(), OrderedDict(), 0, "", "", "", "", "", "", "", "", false)
-    "keyword argument constructor"
-    function ArgumentParser(;
-        filename="", description::String="", lng=0, authors::Vector{String}=String[],
-        documentation::String="", repository::String="", license::String="",
-        usage::String="", examples::Vector{String}=String[], add_help::Bool=false)
-        :ArgumentParser
-        new(OrderedDict(), OrderedDict(), lng, filename, description, authors, documentation,
-            repository, license, usage, examples, add_help)
-    end
+    add_help::Bool = false
 end
 
 ###
