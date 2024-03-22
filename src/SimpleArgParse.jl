@@ -2,7 +2,7 @@ module SimpleArgParse
 
 export ArgumentParser, add_argument!, add_example!, generate_usage, help, parse_args!, 
     get_value, set_value!, has_key, get_key, colorize, 
-    colorprint, nt_args, PromptedParser, 
+    colorprint, args_pairs, PromptedParser, 
     keys
 
 # using Base
@@ -111,6 +111,7 @@ function add_argument!(parser::ArgumentParser, arg_short::String="", arg_long::S
     - `description::String=nothing`: argument description.
     """
     :ArgumentParser
+
     args::Arguments = Arguments(arg_short, arg_long)
     # prefer stripped long argument for higher entropy
     arg::String = !isempty(arg_long) ? arg_long : !isempty(arg_short) ? arg_short : ""
@@ -120,7 +121,7 @@ function add_argument!(parser::ArgumentParser, arg_short::String="", arg_long::S
     # map both argument names to the same key
     !isempty(arg_short) && (parser.arg_store[arg2key(arg_short)] = key)
     !isempty(arg_long)  && (parser.arg_store[arg2key(arg_long)]  = key)
-    default = type == Any ? default : convert(type, default)
+    default = (type == Any) | isnothing(default) ? default : convert(type, default)
     values::ArgumentValues = ArgumentValues(args, default, type, required, description)
     parser.kv_store[key] = values
     return parser
@@ -280,8 +281,8 @@ Base.parse(::Type{String},   x::String)  = x
 Base.parse(::Type{Bool},     x::Bool)    = x
 Base.parse(::Type{Number},   x::Number)  = x
 Base.parse(::Type{String},   x::Bool)    = x ? "true" : "false"
-Base.convert(::Type{Char},   x::Nothing) = ' '
-Base.convert(::Type{String}, x::Nothing) = ""
+# Base.convert(::Type{Char},   x::Nothing) = ' '
+# Base.convert(::Type{String}, x::Nothing) = ""
 
 ###
 ### Utilities
@@ -339,10 +340,12 @@ end
 
 argpair(s, args) = Symbol(s) => get_value(args, s)
 
-function nt_args(args::ArgumentParser)
+function args_pairs(args::ArgumentParser)
     allkeys = keys(args)
     filter!(x -> x != "help", allkeys)
-    return NamedTuple(argpair(k, args) for k in allkeys)
+    ps = [argpair(k, args) for k in allkeys]
+    filter!(p -> !isnothing(p[2]) , ps)
+    return ps
 end
 
 @kwdef mutable struct PromptedParser
@@ -352,7 +355,7 @@ end
     prompt::String = "> "
 end
 
-nt_args(p::PromptedParser) = nt_args(p.parser)
+args_pairs(p::PromptedParser) = args_pairs(p.parser)
 set_value!(p::PromptedParser, arg, value) = set_value!(p.parser, arg, value)
 add_argument!(p::PromptedParser, arg_short, arg_long; kwargs...) = add_argument!(p.parser, arg_short, arg_long; kwargs...)
 parse_args!(p::PromptedParser, cli_args) = parse_args!(p.parser; cli_args)
