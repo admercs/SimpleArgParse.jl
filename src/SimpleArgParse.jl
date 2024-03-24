@@ -209,7 +209,7 @@ function parse_args!(parser::ArgumentParser; cli_args=ARGS)
         # extract default value and update given an argument value
         values::ArgumentValues = parser.kv_store[key]
         # type cast value into tuple index 1
-        value = values.type == Any ? value : parse(values.type, value)
+        value = values.type == Any ? value : _parse(values.type, value)
         parser.kv_store[key] = ArgumentValues(values.args, value, values.type, values.required, values.description)
     end
     return parser
@@ -265,13 +265,12 @@ function set_value!(parser::ArgumentParser, arg::AbstractString, value::Any)
 end
 
 # Type conversion helper methods.
-Base.parse(::Type{String},   x::Number)  = x
-Base.parse(::Type{String},   x::String)  = x
-Base.parse(::Type{Bool},     x::Bool)    = x
-Base.parse(::Type{Number},   x::Number)  = x
-Base.parse(::Type{String},   x::Bool)    = x ? "true" : "false"
-# Base.convert(::Type{Char},   x::Nothing) = ' '
-# Base.convert(::Type{String}, x::Nothing) = ""
+_parse(x, y) = parse(x, y)
+_parse(::Type{String},   x::Number)  = x
+_parse(::Type{String},   x::String)  = x
+_parse(::Type{Bool},     x::Bool)    = x
+_parse(::Type{Number},   x::Number)  = x
+_parse(::Type{String},   x::Bool)    = x ? "true" : "false"
 
 ###
 ### Utilities
@@ -331,7 +330,7 @@ argpair(s, args) = Symbol(s) => get_value(args, s)
 
 function args_pairs(args::ArgumentParser)
     allkeys = keys(args)
-    filter!(x -> x != "help", allkeys)
+    filter!(x -> !(x in ["help", "abort"]), allkeys)
     ps = [argpair(k, args) for k in allkeys]
     filter!(p -> !isnothing(p[2]) , ps)
     return ps
