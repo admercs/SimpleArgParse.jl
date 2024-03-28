@@ -2,7 +2,7 @@
 
 [![DOCS][docs-img]][docs-url] [![CI][CI-img]][CI-url] [![CODECOV][codecov-img]][codecov-url]
 
-A hackable, single-file, 320-line Julia package for command-line argument parsing. `SimpleArgParse` offers 95% of the functionality of  `ArgParse` using ~10% of the lines-of-code (LOC).
+A hackable, single-file, 355-line Julia package for command-line argument parsing. `SimpleArgParse` offers 95% of the functionality of  `ArgParse` using ~10% of the lines-of-code (LOC).
 
 Does this need to be more complicated?
 
@@ -109,6 +109,12 @@ main()
 That is about as simple as it gets and closely follows Python's [`argparse`](https://docs.python.org/3/library/argparse.html). You will notice that we instead make extensive use of the visitor pattern, rather than member methods, to modify the state of the `ArgumentParser` object instance. That is because the Julia language (rather shockingly) does not support member methods. In other words, Julia does not fully support the object-oriented paradigm, but is more functional and data-oriented in design. In some ways, that is a good thing.
 
 ## Changelog
+
+## Release 1.1.0
+
+- SHA-256 hash key replaced with a simple counter.
+- New PromptedArgumentParser data structure and associated helper methods.
+- Minor formatting changes.
 
 ### Release 1.0.0
 

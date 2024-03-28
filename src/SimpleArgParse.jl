@@ -1,12 +1,9 @@
 module SimpleArgParse
 
 export ArgumentParser, add_argument!, add_example!, generate_usage, help, parse_args!, 
-    get_value, set_value!, has_key, get_key, colorize, 
-    colorprint, args_pairs, PromptedParser, 
+    get_value, set_value!, has_key, get_key, colorize, colorprint, args_pairs, PromptedParser, 
     keys
 
-# using Base
-# using SHA: sha256
 using OrderedCollections: OrderedDict
 
 ###
@@ -319,14 +316,24 @@ function colorize(text::AbstractString; color::AbstractString="default", backgro
     return "\033[" * code_string * "m" * text * "\033[0m"
 end
 
-# # # # # # # # 
-
-function colorprint(text, color="default", newline=true; background=false, bright=false) 
+function colorprint(text, color="default", newline=true; background=false, bright=false)
+    :Nothing
     print(colorize(text; color, background, bright))
     newline && println()
 end
 
-argpair(s, args) = Symbol(s) => get_value(args, s)
+"Prompted command-line argument parser with key-value stores and attributes."
+@kwdef mutable struct PromptedParser
+    parser::ArgumentParser = ArgumentParser()
+    color::String = "default"
+    introduction::String = ""
+    prompt::String = "> "
+end
+
+# PromptedParser helper methods.
+function argpair(s, args)
+    return Symbol(s) => get_value(args, s)
+end
 
 function args_pairs(args::ArgumentParser)
     allkeys = keys(args)
@@ -336,13 +343,6 @@ function args_pairs(args::ArgumentParser)
     return ps
 end
 
-@kwdef mutable struct PromptedParser
-    parser::ArgumentParser = ArgumentParser()
-    color::String = "default"
-    introduction::String = ""
-    prompt::String = "> "
-end
-
 args_pairs(p::PromptedParser) = args_pairs(p.parser)
 set_value!(p::PromptedParser, arg, value) = set_value!(p.parser, arg, value)
 add_argument!(p::PromptedParser, arg_short, arg_long; kwargs...) = add_argument!(p.parser, arg_short, arg_long; kwargs...)
@@ -350,6 +350,5 @@ parse_args!(p::PromptedParser, cli_args) = parse_args!(p.parser; cli_args)
 add_example!(p::PromptedParser, example) = add_example!(p.parser, example) 
 help(p::PromptedParser; color=p.color) = help(p.parser; color)
 get_value(p::PromptedParser, arg) = get_value(p.parser, arg)
-
 
 end # module SimpleArgParse
