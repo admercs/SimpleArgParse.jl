@@ -110,7 +110,7 @@ That is about as simple as it gets and closely follows Python's [`argparse`](htt
 
 ## Changelog
 
-## Release 1.1.0
+### Release 1.1.0
 
 - SHA-256 hash key replaced with a simple counter.
 - New PromptedArgumentParser data structure and associated helper methods.
