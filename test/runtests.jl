@@ -1,4 +1,4 @@
-using SimpleArgParse: ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get_value, set_value, has_key, get_key
+using SimpleArgParse: ArgumentParser, add_argument!, add_example!, generate_usage, help, parse_args!, get_value, set_value!, has_key, get_key
 using Test
 
 @testset "SimpleArgParse tests" begin
@@ -33,9 +33,9 @@ using Test
         @test p.add_help
     end
 
-    @testset "Testset add_argument" begin
+    @testset "Testset add_argument!" begin
         p = ArgumentParser()
-        p = add_argument(p, "-f", "--foo", type=String, default="bar", description="baz")
+        p = add_argument!(p, "-f", "--foo", type=String, default="bar", description="baz")
         @test "bar" == get_value(p, "--foo")
         @test "bar" == get_value(p, "-f")
         @test "bar" == get_value(p, "f")
@@ -43,18 +43,18 @@ using Test
 
     @testset "Testset get_value" begin
         p = ArgumentParser()
-        p = add_argument(p, "-f", "--foo", type=String, default="bar", description="baz")
+        p = add_argument!(p, "-f", "--foo", type=String, default="bar", description="baz")
         @test "bar" == get_value(p, "--foo")
         @test "bar" == get_value(p, "-f")
         @test "bar" == get_value(p, "f")
         @test isa(get_value(p, "foo"), String)
     end
     
-    @testset "Testset set_value" begin
+    @testset "Testset set_value!" begin
         p = ArgumentParser()
-        p = add_argument(p, "-f", "--foo", type=String, default="bar")
+        p = add_argument!(p, "-f", "--foo", type=String, default="bar")
         @test "bar" == get_value(p, "--foo")
-        p = set_value(p, "--foo", "baz")
+        p = set_value!(p, "--foo", "baz")
         @test "baz" == get_value(p, "--foo")
     end
 

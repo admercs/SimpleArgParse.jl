@@ -1,9 +1,12 @@
 module SimpleArgParse
 
-export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get_value, set_value, has_key, get_key, colorize
+export ArgumentParser, add_argument!, add_example!, generate_usage, help, parse_args!, 
+    get_value, set_value!, has_key, get_key, colorize, 
+    colorprint, args_pairs, PromptedParser, 
+    keys
 
-using Base
-using SHA: sha256
+# using Base
+# using SHA: sha256
 using OrderedCollections: OrderedDict
 
 ###
@@ -26,42 +29,33 @@ struct ArgumentValues
 end
 
 "Command-line argument parser with key-value stores and attributes."
-mutable struct ArgumentParser
+@kwdef mutable struct ArgumentParser
     # stores
     "key-value store: { key: ArgumentValues(value, type, required, help) }; up to 65,536 argument keys"
-    kv_store::OrderedDict{UInt16,ArgumentValues}
+    kv_store::OrderedDict{UInt16,ArgumentValues} = OrderedDict()
     "key-value store: { arg: key }"
-    arg_store::OrderedDict{String,UInt16}
+    arg_store::OrderedDict{String,UInt16} = OrderedDict()
+    "number of stored args"
+    lng::UInt16 = 0
     # attributes
     "file name"
-    filename::String
+    filename::String = ""
     "description"
-    description::String
+    description::String = ""
     "name of author(s): First Last <first.last@email.address>"
-    authors::Vector{String}
+    authors::Vector{String} = String[]
     "URL of documentations"
-    documentation::String
+    documentation::String = ""
     "URL of software repository"
-    repository::String
+    repository::String = ""
     "name of license"
-    license::String
+    license::String = ""
     "usage/help message"
-    usage::String
+    usage::String = ""
     "usage examples"
-    examples::Vector{String}
+    examples::Vector{String} = String[]
     "flag to automatically generate a help message"
-    add_help::Bool
-    "empty constructor"
-    ArgumentParser() = new(OrderedDict(), OrderedDict(), "", "", "", "", "", "", "", "", false)
-    "keyword argument constructor"
-    function ArgumentParser(;
-        filename="", description::String="", authors::Vector{String}=String[],
-        documentation::String="", repository::String="", license::String="",
-        usage::String="", examples::Vector{String}=String[], add_help::Bool=false)
-        :ArgumentParser
-        new(OrderedDict(), OrderedDict(), filename, description, authors, documentation,
-            repository, license, usage, examples, add_help)
-    end
+    add_help::Bool = false
 end
 
 ###
@@ -84,13 +78,13 @@ function args2vec(args::Arguments)
 end
 
 "Argument to argument-store key conversion by removing hypenation from prefix."
-function arg2key(arg::String)
+function arg2key(arg::AbstractString)
     :String
-    return strip(arg, '-')
+    return lstrip(arg, '-')
 end
 
 "Add command-line argument to ArgumentParser object instance."
-function add_argument(parser::ArgumentParser, arg_short::String="", arg_long::String="";
+function add_argument!(parser::ArgumentParser, arg_short::String="", arg_long::String="";
     type::Type=Any, required::Bool=false, default::Any=nothing, description::String="")
     """
     # Arguments
@@ -106,25 +100,24 @@ function add_argument(parser::ArgumentParser, arg_short::String="", arg_long::St
     - `description::String=nothing`: argument description.
     """
     :ArgumentParser
+
     args::Arguments = Arguments(arg_short, arg_long)
     # prefer stripped long argument for higher entropy
     arg::String = !isempty(arg_long) ? arg_long : !isempty(arg_short) ? arg_short : ""
     isempty(arg) && error("Argument(s) missing. See usage examples.")
-    # remove prepended hyphenation to increase entropy
-    argkey::String = arg2key(arg)
-    # key is first two bytes of SHA-256 hash of argument name; up to 65,536 argument keys
-    key::UInt16 = read(IOBuffer(sha256(argkey)[1:2]), UInt16)
+    parser.lng += 1
+    key::UInt16 = parser.lng
     # map both argument names to the same key
     !isempty(arg_short) && (parser.arg_store[arg2key(arg_short)] = key)
     !isempty(arg_long)  && (parser.arg_store[arg2key(arg_long)]  = key)
-    default = type == Any ? default : convert(type, default)
+    default = (type == Any) | isnothing(default) ? default : convert(type, default)
     values::ArgumentValues = ArgumentValues(args, default, type, required, description)
     parser.kv_store[key] = values
     return parser
 end
 
 "Add command-line usage example."
-function add_example(parser::ArgumentParser, example::String)
+function add_example!(parser::ArgumentParser, example::AbstractString)
     :ArgumentParser
     push!(parser.examples, example)
     return parser
@@ -178,23 +171,23 @@ function generate_usage(parser::ArgumentParser)
 end
 
 "Helper function to print usage/help message."
-function help(parser::ArgumentParser; color::String="default")
+function help(parser::ArgumentParser; color::AbstractString="default")
     :Nothing
     println(colorize(parser.usage, color=color))
     return nothing
 end
 
 "Parse command-line arguments."
-function parse_args(parser::ArgumentParser)
+function parse_args!(parser::ArgumentParser; cli_args=ARGS)
     :ArgumentParser
     if parser.add_help
-        parser = add_argument(parser, "-h", "--help", type=Bool, default=false, description="Print the help message.")
+        parser = add_argument!(parser, "-h", "--help", type=Bool, default=false, description="Print the help message.")
         parser.usage = generate_usage(parser)
     end
     parser.filename = PROGRAM_FILE
-    n::Int64 = length(ARGS)
-    for i::Int64 in eachindex(ARGS)
-        arg::String = ARGS[i]
+    n::Int64 = length(cli_args)
+    for i::Int64 in eachindex(cli_args)
+        arg::String = cli_args[i]
         argkey::String = arg2key(arg)
         if startswith(arg, "-")
             !haskey(parser.arg_store, argkey) && error("Argument not found: $(arg). Call `add_argument` before parsing.")
@@ -205,10 +198,10 @@ function parse_args(parser::ArgumentParser)
         end
         # if next iteration is at the end or is an argument, treat current argument as flag/boolean
         # otherwise, capture the value and skip iterating over it for efficiency
-        if (i + 1 > n) || startswith(ARGS[i+1], "-")
+        if (i + 1 > n) || startswith(cli_args[i+1], "-")
             value = true
         elseif (i + 1 <= n)
-            value = ARGS[i+1]
+            value = cli_args[i+1]
             i += 1
         else
             error("Value failed to parse for arg: $(arg)")
@@ -216,14 +209,14 @@ function parse_args(parser::ArgumentParser)
         # extract default value and update given an argument value
         values::ArgumentValues = parser.kv_store[key]
         # type cast value into tuple index 1
-        value = values.type == Any ? value : parse(values.type, value)
+        value = values.type == Any ? value : _parse(values.type, value)
         parser.kv_store[key] = ArgumentValues(values.args, value, values.type, values.required, values.description)
     end
     return parser
 end
 
 "Get argument value from parser."
-function get_value(parser::ArgumentParser, arg::String)
+function get_value(parser::ArgumentParser, arg::AbstractString)
     :Any
     argkey::String = arg2key(arg)
     !haskey(parser.arg_store, argkey) && error("Argument not found: $(arg). Run `add_argument` first.")
@@ -233,15 +226,17 @@ function get_value(parser::ArgumentParser, arg::String)
 end
 
 "Check if argument key exists in store."
-function has_key(parser::ArgumentParser, arg::String)
+function has_key(parser::ArgumentParser, arg::AbstractString)
     :Bool
     argkey::String = arg2key(arg)
     result::Bool = haskey(parser.arg_store, argkey) ? true : false
     return result
 end
 
+Base.keys(parser::ArgumentParser) = [arg2key(v.args.long) for v in values(parser.kv_store)]
+
 "Get argument key from parser."
-function get_key(parser::ArgumentParser, arg::String)
+function get_key(parser::ArgumentParser, arg::AbstractString)
     :Union
     argkey::String = arg2key(arg)
     key::Union{UInt16,Nothing} = haskey(parser.arg_store, argkey) ? parser.arg_store[argkey] : nothing
@@ -249,7 +244,7 @@ function get_key(parser::ArgumentParser, arg::String)
 end
 
 "Prepend hyphenation back onto argument after stripping it for the argument-store key."
-function hyphenate(arg::String)
+function hyphenate(arg::AbstractString)
     :String
     argkey::String = arg2key(arg)  # supports "foo" or "--foo" argument form
     result::String = length(argkey) == 1 ? "-" * argkey : "--" * argkey
@@ -257,7 +252,7 @@ function hyphenate(arg::String)
 end
 
 "Set/update value of argument in parser."
-function set_value(parser::ArgumentParser, arg::String, value::Any)
+function set_value!(parser::ArgumentParser, arg::AbstractString, value::Any)
     :ArgumentParser
     argkey::String = arg2key(arg)
     !haskey(parser.arg_store, argkey) && error("Argument not found in store.")
@@ -270,13 +265,12 @@ function set_value(parser::ArgumentParser, arg::String, value::Any)
 end
 
 # Type conversion helper methods.
-Base.parse(::Type{String},   x::Number)  = x
-Base.parse(::Type{String},   x::String)  = x
-Base.parse(::Type{Bool},     x::Bool)    = x
-Base.parse(::Type{Number},   x::Number)  = x
-Base.parse(::Type{String},   x::Bool)    = x ? "true" : "false"
-Base.convert(::Type{Char},   x::Nothing) = ' '
-Base.convert(::Type{String}, x::Nothing) = ""
+_parse(x, y) = parse(x, y)
+_parse(::Type{String},   x::Number)  = x
+_parse(::Type{String},   x::String)  = x
+_parse(::Type{Bool},     x::Bool)    = x
+_parse(::Type{Number},   x::Number)  = x
+_parse(::Type{String},   x::Bool)    = x ? "true" : "false"
 
 ###
 ### Utilities
@@ -295,7 +289,7 @@ ANSICODES::Base.ImmutableDict{String,Int} = Base.ImmutableDict(
     "default" => 39
 )
 
-function colorize(text::String; color::String="default", background::Bool=false, bright::Bool=false)
+function colorize(text::AbstractString; color::AbstractString="default", background::Bool=false, bright::Bool=false)
     :String
     """
     Colorize strings or backgrounds using ANSI codes and escape sequences.
@@ -324,5 +318,38 @@ function colorize(text::String; color::String="default", background::Bool=false,
     code_string::String = string(code)
     return "\033[" * code_string * "m" * text * "\033[0m"
 end
+
+# # # # # # # # 
+
+function colorprint(text, color="default", newline=true; background=false, bright=false) 
+    print(colorize(text; color, background, bright))
+    newline && println()
+end
+
+argpair(s, args) = Symbol(s) => get_value(args, s)
+
+function args_pairs(args::ArgumentParser)
+    allkeys = keys(args)
+    filter!(x -> !(x in ["help", "abort"]), allkeys)
+    ps = [argpair(k, args) for k in allkeys]
+    filter!(p -> !isnothing(p[2]) , ps)
+    return ps
+end
+
+@kwdef mutable struct PromptedParser
+    parser::ArgumentParser = ArgumentParser()
+    color::String = "default"
+    introduction::String = ""
+    prompt::String = "> "
+end
+
+args_pairs(p::PromptedParser) = args_pairs(p.parser)
+set_value!(p::PromptedParser, arg, value) = set_value!(p.parser, arg, value)
+add_argument!(p::PromptedParser, arg_short, arg_long; kwargs...) = add_argument!(p.parser, arg_short, arg_long; kwargs...)
+parse_args!(p::PromptedParser, cli_args) = parse_args!(p.parser; cli_args)
+add_example!(p::PromptedParser, example) = add_example!(p.parser, example) 
+help(p::PromptedParser; color=p.color) = help(p.parser; color)
+get_value(p::PromptedParser, arg) = get_value(p.parser, arg)
+
 
 end # module SimpleArgParse
