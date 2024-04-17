@@ -67,7 +67,7 @@ using SimpleArgParse: ArgumentParser, add_argument, add_example, generate_usage,
 function main()
     :Int
 
-    args::ArgumentParser = ArgumentParser(description="SimpleArgParse example.", add_help=true)
+    args = ArgumentParser(description="SimpleArgParse example.", add_help=true)
     args = add_argument(args, "-i", "--input", type=String, required=true, default="filename.txt", description="Input file.")
     args = add_argument(args, "-n", "--number", type=UInt8, default=0, description="Integer number.")
     args = add_argument(args, "-v", "--verbose", type=Bool, default=false, description="Verbose mode switch.")
@@ -109,6 +109,10 @@ main()
 That is about as simple as it gets and closely follows Python's [`argparse`](https://docs.python.org/3/library/argparse.html). You will notice that we instead make extensive use of the visitor pattern, rather than member methods, to modify the state of the `ArgumentParser` object instance. That is because the Julia language (rather shockingly) does not support member methods. In other words, Julia does not fully support the object-oriented paradigm, but is more functional and data-oriented in design. In some ways, that is a good thing.
 
 ## Changelog
+
+### Release 1.1.0
+
+- Switched the hashmap keys to a simple counter, resulting in faster execution. Contributed by [Eben60](https://github.com/Eben60).
 
 ### Release 1.0.0
 
