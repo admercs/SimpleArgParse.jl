@@ -2,6 +2,8 @@ module SimpleArgParse
 
 export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get_value, set_value, has_key, get_key, colorize
 
+import OrderedCollections: OrderedDict
+
 ### Data Structures ###
 
 "Command-line argments."
