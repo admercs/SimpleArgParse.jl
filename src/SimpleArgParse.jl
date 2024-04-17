@@ -2,13 +2,7 @@ module SimpleArgParse
 
 export ArgumentParser, add_argument, add_example, generate_usage, help, parse_args, get_value, set_value, has_key, get_key, colorize
 
-using Base
-using SHA: sha256
-using OrderedCollections: OrderedDict
-
-###
-### Data Structures
-###
+### Data Structures ###
 
 "Command-line argments."
 struct Arguments
@@ -32,6 +26,8 @@ mutable struct ArgumentParser
     kv_store::OrderedDict{UInt16,ArgumentValues}
     "key-value store: { arg: key }"
     arg_store::OrderedDict{String,UInt16}
+    "key-value counter"
+    key_count::UInt16
     # attributes
     "file name"
     filename::String
@@ -52,21 +48,19 @@ mutable struct ArgumentParser
     "flag to automatically generate a help message"
     add_help::Bool
     "empty constructor"
-    ArgumentParser() = new(OrderedDict(), OrderedDict(), "", "", "", "", "", "", "", "", false)
+    ArgumentParser() = new(OrderedDict(), OrderedDict(), 0, "", "", "", "", "", "", "", "", false)
     "keyword argument constructor"
     function ArgumentParser(;
         filename="", description::String="", authors::Vector{String}=String[],
         documentation::String="", repository::String="", license::String="",
         usage::String="", examples::Vector{String}=String[], add_help::Bool=false)
         :ArgumentParser
-        new(OrderedDict(), OrderedDict(), filename, description, authors, documentation,
+        new(OrderedDict(), OrderedDict(), 0, filename, description, authors, documentation,
             repository, license, usage, examples, add_help)
     end
 end
 
-###
-### Functions
-###
+### Functions ###
 
 "Extract struct members to vector."
 function args2vec(args::Arguments)
@@ -86,7 +80,7 @@ end
 "Argument to argument-store key conversion by removing hypenation from prefix."
 function arg2key(arg::String)
     :String
-    return strip(arg, '-')
+    return lstrip(arg, '-')
 end
 
 "Add command-line argument to ArgumentParser object instance."
@@ -107,14 +101,13 @@ function add_argument(parser::ArgumentParser, arg_short::String="", arg_long::St
     """
     :ArgumentParser
     args::Arguments = Arguments(arg_short, arg_long)
-    # prefer stripped long argument for higher entropy
     arg::String = !isempty(arg_long) ? arg_long : !isempty(arg_short) ? arg_short : ""
     isempty(arg) && error("Argument(s) missing. See usage examples.")
-    # remove prepended hyphenation to increase entropy
     argkey::String = arg2key(arg)
-    # key is first two bytes of SHA-256 hash of argument name; up to 65,536 argument keys
-    key::UInt16 = read(IOBuffer(sha256(argkey)[1:2]), UInt16)
-    # map both argument names to the same key
+    # key index is a simple counter.
+    parser.key_count += 1
+    key::UInt16 = parser.key_count
+    # map both argument names to the same key.
     !isempty(arg_short) && (parser.arg_store[arg2key(arg_short)] = key)
     !isempty(arg_long)  && (parser.arg_store[arg2key(arg_long)]  = key)
     default = type == Any ? default : convert(type, default)
@@ -204,7 +197,7 @@ function parse_args(parser::ArgumentParser)
             continue
         end
         # if next iteration is at the end or is an argument, treat current argument as flag/boolean
-        # otherwise, capture the value and skip iterating over it for efficiency
+        # otherwise, capture the value and skip iterating over it for efficiency.
         if (i + 1 > n) || startswith(ARGS[i+1], "-")
             value = true
         elseif (i + 1 <= n)
@@ -213,9 +206,9 @@ function parse_args(parser::ArgumentParser)
         else
             error("Value failed to parse for arg: $(arg)")
         end
-        # extract default value and update given an argument value
+        # extract default value and update given an argument value.
         values::ArgumentValues = parser.kv_store[key]
-        # type cast value into tuple index 1
+        # type cast value into tuple index 1.
         value = values.type == Any ? value : parse(values.type, value)
         parser.kv_store[key] = ArgumentValues(values.args, value, values.type, values.required, values.description)
     end
@@ -251,7 +244,7 @@ end
 "Prepend hyphenation back onto argument after stripping it for the argument-store key."
 function hyphenate(arg::String)
     :String
-    argkey::String = arg2key(arg)  # supports "foo" or "--foo" argument form
+    argkey::String = arg2key(arg)  # supports "foo" or "--foo" argument form.
     result::String = length(argkey) == 1 ? "-" * argkey : "--" * argkey
     return result
 end
@@ -278,9 +271,7 @@ Base.parse(::Type{String},   x::Bool)    = x ? "true" : "false"
 Base.convert(::Type{Char},   x::Nothing) = ' '
 Base.convert(::Type{String}, x::Nothing) = ""
 
-###
-### Utilities
-###
+### Utilities ###
 
 "Key-value store mapping from colors to ANSI codes."
 ANSICODES::Base.ImmutableDict{String,Int} = Base.ImmutableDict(
